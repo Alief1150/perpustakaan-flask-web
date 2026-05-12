@@ -191,6 +191,7 @@ EOF
 }
 
 install_nginx_config() {
+  mkdir -p "$(dirname "${NGINX_CONF}")"
   cat > "${NGINX_CONF}" <<EOF
 server {
     listen 80;
