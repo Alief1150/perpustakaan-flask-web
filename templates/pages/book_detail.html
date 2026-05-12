@@ -1,0 +1,174 @@
+{% extends "layouts/base.html" %}
+{% block title %}Detail Buku | Perpustakaan PNJ{% endblock title %}
+{% block extrastyle %}
+<style>
+  .detail-shell {
+    border-radius: 1.25rem;
+    overflow: hidden;
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, .08);
+  }
+
+  .detail-cover {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(94, 114, 228, .08), rgba(131, 146, 171, .12));
+  }
+
+  .detail-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .detail-cover-fallback {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+    color: #8392ab;
+  }
+
+  .detail-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .45rem .75rem;
+    border-radius: 999px;
+    background: #f8f9fa;
+    color: #344767;
+    font-size: .875rem;
+  }
+
+  .detail-meta-card {
+    border: 1px solid rgba(0, 0, 0, .06);
+    border-radius: 1rem;
+    background: #fff;
+  }
+
+  .detail-summary {
+    background: linear-gradient(135deg, #344767 0%, #5e72e4 100%);
+    color: #fff;
+    border-radius: 1rem;
+  }
+
+  .detail-summary .text-secondary,
+  .detail-summary .text-muted {
+    color: rgba(255, 255, 255, .78) !important;
+  }
+</style>
+{% endblock extrastyle %}
+{% block content %}
+<div class="card detail-shell border-0">
+  <div class="card-body p-4 p-lg-5">
+    <div class="row g-4 align-items-start">
+      <div class="col-lg-4">
+        <div class="detail-cover shadow-sm">
+          {% set cover_src = book.cover_src %}
+          {% if cover_src %}
+            {% if cover_src.startswith('http') %}
+              <img src="{{ cover_src }}" alt="{{ book.title }}">
+            {% else %}
+              <img src="{{ url_for('static', filename=cover_src) }}" alt="{{ book.title }}">
+            {% endif %}
+          {% else %}
+            <div class="detail-cover-fallback">
+              <div>
+                <div class="fw-bold text-secondary">cover not available</div>
+                <small>Belum ada cover buku</small>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-lg-8">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+          <div>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="badge bg-gradient-primary">{{ book.category }}</span>
+              <span class="badge {% if book.status == 'available' %}bg-gradient-success{% else %}bg-gradient-warning{% endif %}">
+                {{ book.status.replace('_', ' ') }}
+              </span>
+              {% if book.has_ebook %}
+                <span class="badge bg-gradient-info">Ebook ready</span>
+              {% endif %}
+            </div>
+            <h3 class="mb-2">{{ book.title }}</h3>
+            <p class="text-secondary mb-0">{{ book.author }} · {{ book.publisher }}</p>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('home_blueprint.books') }}" class="btn btn-outline-secondary mb-0">Kembali</a>
+            <a href="{{ url_for('home_blueprint.book_edit', book_id=book.id) }}" class="btn btn-outline-primary mb-0">Edit</a>
+            {% if book.has_ebook %}
+              <a href="{{ url_for('home_blueprint.book_download', book_id=book.id) }}" class="btn btn-primary mb-0">Download</a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="detail-meta-card p-3 h-100">
+              <p class="text-sm text-secondary mb-1">Kode Buku</p>
+              <h6 class="mb-0">{{ book.code }}</h6>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-meta-card p-3 h-100">
+              <p class="text-sm text-secondary mb-1">Tahun Terbit</p>
+              <h6 class="mb-0">{{ book.year or '-' }}</h6>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-meta-card p-3 h-100">
+              <p class="text-sm text-secondary mb-1">Lokasi Rak</p>
+              <h6 class="mb-0">{{ book.shelf_location or '-' }}</h6>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-meta-card p-3 h-100">
+              <p class="text-sm text-secondary mb-1">File Ebook</p>
+              <h6 class="mb-0">{{ book.ebook_display_name }}</h6>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-summary p-4 mb-4">
+          <div class="row g-3">
+            <div class="col-sm-4">
+              <small class="text-white-50">Stok Tersedia</small>
+              <div class="h4 mb-0">{{ book.stock_available }}</div>
+            </div>
+            <div class="col-sm-4">
+              <small class="text-white-50">Total Stok</small>
+              <div class="h4 mb-0">{{ book.stock_total }}</div>
+            </div>
+            <div class="col-sm-4">
+              <small class="text-white-50">Status File</small>
+              <div class="h4 mb-0">{{ 'Ada' if book.has_ebook else 'Belum ada' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-meta-card p-4 mb-4">
+          <h6 class="mb-3">Deskripsi</h6>
+          <p class="mb-0 text-secondary">{{ book.description or 'Tidak ada deskripsi.' }}</p>
+        </div>
+
+        {% if book.has_ebook %}
+        <div class="alert alert-success mb-0">
+          File buku siap diunduh kapan saja.
+        </div>
+        {% else %}
+        <div class="alert alert-warning mb-0">
+          Belum ada file PDF/EPUB untuk buku ini.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

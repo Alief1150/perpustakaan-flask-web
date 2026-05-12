@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% include "includes/head.html" %}
+  {% block extrastyle %}{% endblock extrastyle %}
+</head>
+<body class="g-sidenav-show bg-gray-100">
+  {% include "includes/sidebar.html" %}
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    {% include "includes/navigation.html" %}
+    <div class="container-fluid py-4">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              <span class="alert-text text-white">{{ message }}</span>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock content %}
+    </div>
+  </main>
+  {% include "includes/scripts.html" %}
+  {% block extra_js %}{% endblock extra_js %}
+</body>
+</html>

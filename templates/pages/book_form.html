@@ -1,0 +1,70 @@
+{% extends "layouts/base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit Buku{% else %}Tambah Buku{% endif %} | Perpustakaan PNJ{% endblock title %}
+{% block content %}
+<div class="card">
+  <div class="card-header pb-0">
+    <h6>{% if mode == 'edit' %}Edit Buku{% else %}Tambah Buku{% endif %}</h6>
+    <p class="text-sm mb-0">Cover akan disimpan ke folder aset lokal, file buku ke folder upload server.</p>
+  </div>
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+      <div class="row">
+        {% for field in [form.code, form.title, form.author, form.publisher, form.category, form.year, form.isbn, form.stock_total, form.stock_available, form.shelf_location, form.status, form.cover_url] %}
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ field.label.text }}</label>
+          {{ field(class="form-control") }}
+          {% for error in field.errors %}<small class="text-danger">{{ error }}</small>{% endfor %}
+        </div>
+        {% endfor %}
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ form.cover_file.label.text }}</label>
+          {{ form.cover_file(class="form-control") }}
+          <small class="text-muted">Upload JPG/PNG/WEBP. Jika kosong, cover default akan dipakai.</small>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ form.ebook_file.label.text }}</label>
+          {{ form.ebook_file(class="form-control") }}
+          <small class="text-muted">Upload PDF atau EPUB agar bisa diunduh admin.</small>
+        </div>
+
+        <div class="col-12 mb-3">
+          <label class="form-label">{{ form.description.label.text }}</label>
+          {{ form.description(class="form-control", rows="5") }}
+          {% for error in form.description.errors %}<small class="text-danger">{{ error }}</small>{% endfor %}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Simpan</button>
+      <a href="{{ url_for('home_blueprint.books') }}" class="btn btn-secondary">Batal</a>
+    </form>
+  </div>
+</div>
+{% if mode == 'edit' and book %}
+<div class="card mt-4">
+  <div class="card-header pb-0">
+    <h6>Preview Saat Ini</h6>
+  </div>
+  <div class="card-body">
+    {% set cover_src = book.cover_src %}
+    {% if cover_src %}
+      {% if cover_src.startswith('http') %}
+        <img src="{{ cover_src }}" alt="{{ book.title }}" class="img-fluid rounded shadow-sm mb-3" style="max-width: 180px;">
+      {% else %}
+        <img src="{{ url_for('static', filename=cover_src) }}" alt="{{ book.title }}" class="img-fluid rounded shadow-sm mb-3" style="max-width: 180px;">
+      {% endif %}
+    {% else %}
+      <div class="d-flex align-items-center justify-content-center bg-light text-secondary rounded shadow-sm mb-3 text-center" style="width: 180px; height: 240px; border: 1px solid rgba(0,0,0,.08);">
+        <div>
+          <div class="fw-semibold">cover not available</div>
+          <small>Belum ada cover buku</small>
+        </div>
+      </div>
+    {% endif %}
+    <p class="mb-1"><strong>File ebook:</strong> {{ book.ebook_display_name }}</p>
+    <p class="mb-0"><strong>Status file:</strong> {% if book.has_ebook %}Siap diunduh{% else %}Belum ada file{% endif %}</p>
+  </div>
+</div>
+{% endif %}
+{% endblock content %}

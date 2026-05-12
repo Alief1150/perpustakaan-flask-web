@@ -1,0 +1,26 @@
+{% extends "layouts/base.html" %}
+{% block title %}Profile | Perpustakaan PNJ{% endblock title %}
+{% block content %}
+<div class="card">
+  <div class="card-header pb-0"><h6>Profile Admin</h6></div>
+  <div class="card-body">
+    <form method="post">
+      {{ form.hidden_tag() }}
+      <div class="row">
+        {% for field in [form.full_name, form.username, form.email, form.avatar_url, form.password, form.confirm_password] %}
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ field.label.text }}</label>
+          {{ field(class="form-control") }}
+          {% for error in field.errors %}<small class="text-danger">{{ error }}</small>{% endfor %}
+        </div>
+        {% endfor %}
+        <div class="col-12 mb-3">
+          <label class="form-label">{{ form.bio.label.text }}</label>
+          {{ form.bio(class="form-control", rows="4") }}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Update Profile</button>
+    </form>
+  </div>
+</div>
+{% endblock content %}

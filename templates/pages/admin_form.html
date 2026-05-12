@@ -1,0 +1,33 @@
+{% extends "layouts/base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit Admin{% else %}Tambah Admin{% endif %} | Perpustakaan PNJ{% endblock title %}
+{% block content %}
+<div class="card">
+  <div class="card-header pb-0"><h6>{% if mode == 'edit' %}Edit Admin{% else %}Tambah Admin{% endif %}</h6></div>
+  <div class="card-body">
+    <form method="post">
+      {{ form.hidden_tag() }}
+      <div class="row">
+        {% for field in [form.username, form.full_name, form.email, form.password, form.confirm_password, form.avatar_url] %}
+        <div class="col-md-6 mb-3">
+          <label class="form-label">{{ field.label.text }}</label>
+          {{ field(class="form-control") }}
+          {% for error in field.errors %}<small class="text-danger">{{ error }}</small>{% endfor %}
+        </div>
+        {% endfor %}
+        <div class="col-md-6 mb-3 d-flex align-items-center">
+          <div class="form-check form-switch mt-4">
+            {{ form.is_active_account(class="form-check-input") }}
+            <label class="form-check-label ms-2">{{ form.is_active_account.label.text }}</label>
+          </div>
+        </div>
+        <div class="col-12 mb-3">
+          <label class="form-label">{{ form.bio.label.text }}</label>
+          {{ form.bio(class="form-control", rows="4") }}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Simpan</button>
+      <a href="{{ url_for('home_blueprint.admins') }}" class="btn btn-secondary">Batal</a>
+    </form>
+  </div>
+</div>
+{% endblock content %}
