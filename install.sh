@@ -4,7 +4,8 @@ set -euo pipefail
 APP_NAME="perpustakaan-flask-web"
 REPO_URL="https://github.com/Alief1150/perpustakaan-flask-web.git"
 BRANCH="main"
-APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="${SCRIPT_DIR}"
 VENV_DIR="${APP_DIR}/.venv"
 ENV_FILE="${APP_DIR}/.env"
 SERVICE_NAME="${APP_NAME}"
@@ -104,14 +105,37 @@ install_system_packages() {
 }
 
 ensure_git_branch_main() {
+  local clone_dir
+  clone_dir="${SCRIPT_DIR}/${APP_NAME}"
+
   if git -C "${APP_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     log "Git repository ditemukan di ${APP_DIR}. Update ke branch ${BRANCH}."
     git -C "${APP_DIR}" fetch origin "${BRANCH}"
     git -C "${APP_DIR}" checkout "${BRANCH}"
     git -C "${APP_DIR}" reset --hard "origin/${BRANCH}"
-  else
-    die "Folder ${APP_DIR} bukan git repository. Clone repo ini dulu lalu jalankan install.sh dari root project."
+    return
   fi
+
+  if [[ -d "${clone_dir}/.git" ]]; then
+    log "Git repository ditemukan di ${clone_dir}. Menggunakannya sebagai source project."
+    APP_DIR="${clone_dir}"
+    VENV_DIR="${APP_DIR}/.venv"
+    ENV_FILE="${APP_DIR}/.env"
+    git -C "${APP_DIR}" fetch origin "${BRANCH}"
+    git -C "${APP_DIR}" checkout "${BRANCH}"
+    git -C "${APP_DIR}" reset --hard "origin/${BRANCH}"
+    return
+  fi
+
+  if [[ -e "${clone_dir}" ]]; then
+    die "Target clone ${clone_dir} sudah ada tetapi bukan git repository. Hapus atau pindahkan dulu folder itu."
+  fi
+
+  log "Git repository belum ada di ${APP_DIR}. Clone repo ke ${clone_dir}."
+  git clone --branch "${BRANCH}" "${REPO_URL}" "${clone_dir}"
+  APP_DIR="${clone_dir}"
+  VENV_DIR="${APP_DIR}/.venv"
+  ENV_FILE="${APP_DIR}/.env"
 }
 
 create_env_file() {
@@ -247,12 +271,14 @@ verify_installation() {
 
 main() {
   require_root
-  command_exists git || die "git belum tersedia di sistem."
-  command_exists python3 || die "python3 belum tersedia di sistem."
-  command_exists systemctl || die "systemd/systemctl tidak ditemukan di sistem ini."
 
   log "Mulai instalasi ${APP_NAME}"
   install_system_packages
+
+  command_exists git || die "git belum tersedia setelah instalasi paket sistem."
+  command_exists python3 || die "python3 belum tersedia setelah instalasi paket sistem."
+  command_exists systemctl || die "systemd/systemctl tidak ditemukan di sistem ini."
+
   ensure_git_branch_main
   ensure_runtime_dirs
   create_env_file
