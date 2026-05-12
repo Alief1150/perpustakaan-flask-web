@@ -8,12 +8,16 @@ __pycache__/
 
 # database & logs
 *.db
+*.sqlite3
 #*.sqlite3
 *.log
 
 # runtime uploads
 uploads/books/*
 !uploads/books/.gitkeep
+
+# env
+.env
 
 # venv
 env
