@@ -8,28 +8,212 @@
   <img src="https://img.shields.io/badge/Flask-3.x-000000?logo=flask&logoColor=white" alt="Flask badge" />
   <img src="https://img.shields.io/badge/SQLite-Database-003B57?logo=sqlite&logoColor=white" alt="SQLite badge" />
   <img src="https://img.shields.io/badge/Nginx-Reverse%20Proxy-009639?logo=nginx&logoColor=white" alt="Nginx badge" />
-  <img src="https://img.shields.io/badge/Admin-Only-5E72E4" alt="Admin only badge" />
-  <img src="https://img.shields.io/badge/PDF%20%2F%20EPUB-Upload%20%26%20Download-111827" alt="PDF EPUB badge" />
+  <img src="https://img.shields.io/badge/Gunicorn-Production-2F855A" alt="Gunicorn badge" />
 </p>
 
-<p align="center">
-  Dashboard admin untuk mengelola koleksi buku Perpustakaan PNJ. Fokusnya sederhana: overview, CRUD buku, manage admin, profile, cover lokal, dan upload/download file buku.
-</p>
+Aplikasi web admin-only untuk mengelola koleksi buku Perpustakaan PNJ. Project ini dibuat agar mudah dipahami, mudah dijalankan, dan bisa dipasang di beberapa distribusi Linux dengan script Bash yang sama.
 
-## 🔎 Ikhtisar project
+## Ringkasan project
 
-Perpustakaan PNJ adalah web app admin-only berbasis Flask yang memakai template Soft UI Dashboard sebagai fondasi tampilan.
-
-Aplikasi ini dibuat untuk:
-- mengelola data buku secara cepat
+Perpustakaan PNJ adalah web app berbasis Flask untuk:
+- mengelola data buku secara terpusat
 - menampilkan katalog buku dengan cover lokal
-- upload file buku PDF/EPUB dan mengunduhnya kembali
+- upload dan download file buku PDF / EPUB
 - mengelola akun admin
-- melihat ringkasan dashboard secara visual
+- menampilkan dashboard ringkas untuk monitoring data
 
-Aplikasi berjalan internal di `127.0.0.1:8000` dan idealnya diakses publik lewat Nginx reverse proxy di port `80`.
+Aplikasi dijalankan dengan Gunicorn di dalam Python virtual environment (`venv`).
+Untuk akses publik, aplikasi ditempatkan di belakang Nginx sebagai reverse proxy.
 
-## 📸 Showcase
+## Kenapa project ini dibuat
+
+Project ini cocok untuk tugas dosen karena memperlihatkan alur deployment yang rapi:
+- ada source code web app
+- ada dependency Python yang terisolasi di `venv`
+- ada service systemd untuk menjalankan aplikasi seperti server sungguhan
+- ada Nginx sebagai reverse proxy
+- ada script install dan uninstall yang jelas
+- bisa dijalankan di beberapa distro Linux tanpa ubah banyak langkah
+
+## Fitur utama
+
+- Dashboard overview
+- CRUD buku
+- Manage admin / user admin
+- Halaman profile admin
+- Upload cover buku lokal
+- Upload file buku PDF / EPUB
+- Download file buku dari halaman detail
+- Search dan filter katalog
+- Fallback cover `cover not available` jika cover kosong
+- Reverse proxy Nginx agar Flask tetap internal di port 8000
+
+## Dukungan Linux
+
+Script install sudah mendeteksi distro otomatis. Dukungan utama:
+- Ubuntu / Debian
+- Arch Linux / Manjaro
+- Fedora / RHEL / CentOS
+- openSUSE / SLES
+
+## Struktur penting project
+
+```txt
+perpustakaan-flask-web/
+├── apps/
+├── assets/
+│   └── readme/
+├── nginx/
+├── static/
+├── uploads/
+├── install.sh
+├── uninstall.sh
+├── requirements.txt
+├── run.py
+└── README.md
+```
+
+## Cara menjalankan yang paling mudah
+
+### Opsi yang direkomendasikan: pakai install.sh
+
+Kalau repo sudah di-clone:
+
+```bash
+git clone https://github.com/Alief1150/perpustakaan-flask-web.git
+cd perpustakaan-flask-web
+sudo bash install.sh
+```
+
+Kalau kamu hanya punya file `install.sh` dan menjalankannya di folder kosong, script akan clone repository ini otomatis lalu lanjut instalasi.
+
+Yang dilakukan script:
+- mendeteksi distro Linux
+- memasang paket sistem yang dibutuhkan
+- clone / update repo ke branch `main`
+- membuat virtual environment
+- install dependency Python
+- membuat file `.env`
+- memasang service systemd untuk Gunicorn
+- memasang konfigurasi Nginx
+- menyalakan service aplikasi
+
+Setelah selesai, aplikasi bisa diakses lewat:
+- lokal: `http://127.0.0.1:8000/`
+- publik: `http://IP_SERVER/` melalui Nginx
+
+## Contoh instalasi di beberapa distro Linux
+
+### Ubuntu / Debian
+
+```bash
+sudo apt update
+sudo apt install -y git python3 python3-venv python3-pip nginx
+
+git clone https://github.com/Alief1150/perpustakaan-flask-web.git
+cd perpustakaan-flask-web
+sudo bash install.sh
+```
+
+### Arch Linux / Manjaro
+
+```bash
+sudo pacman -Syu --needed git python python-pip nginx
+
+git clone https://github.com/Alief1150/perpustakaan-flask-web.git
+cd perpustakaan-flask-web
+sudo bash install.sh
+```
+
+### Fedora / RHEL / CentOS
+
+```bash
+sudo dnf install -y git python3 python3-pip python3-devel nginx
+
+git clone https://github.com/Alief1150/perpustakaan-flask-web.git
+cd perpustakaan-flask-web
+sudo bash install.sh
+```
+
+### openSUSE / SLES
+
+```bash
+sudo zypper --non-interactive install git python3 python3-pip python3-devel nginx
+
+git clone https://github.com/Alief1150/perpustakaan-flask-web.git
+cd perpustakaan-flask-web
+sudo bash install.sh
+```
+
+Catatan:
+- langkah manual di atas menunjukkan perbedaan paket antar distro
+- sebenarnya `install.sh` sudah menangani instalasi paket sistem secara otomatis
+- kalau paket sistem sudah ada, script akan lanjut ke tahap setup project
+
+## Menjalankan manual untuk development
+
+Kalau ingin menjalankan tanpa service production:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python run.py
+```
+
+Akses:
+
+```txt
+http://127.0.0.1:8000/
+```
+
+## Cara akses lewat Nginx
+
+Secara arsitektur:
+- Flask / Gunicorn jalan di `127.0.0.1:8000`
+- Nginx menjadi pintu publik di port `80`
+
+Jadi alurnya seperti ini:
+
+```txt
+Browser -> Nginx (80) -> Gunicorn (127.0.0.1:8000) -> Flask app
+```
+
+Ini adalah pola yang umum dipakai untuk deployment web app Python di Linux server.
+
+## Cara uninstall
+
+Untuk menghapus komponen project yang dipasang oleh script:
+
+```bash
+sudo bash uninstall.sh
+```
+
+Yang dihapus oleh uninstall:
+- service systemd
+- konfigurasi Nginx project
+- `.env`
+- folder virtual environment `.venv`
+- folder project
+- state instalasi milik project
+
+Uninstall tidak menghapus dependency global sistem, jadi lebih aman.
+
+## File penting
+
+- `run.py` → entrypoint aplikasi
+- `gunicorn-cfg.py` → konfigurasi Gunicorn
+- `env.sample` → contoh environment variable
+- `install.sh` → installer otomatis multi-distro
+- `uninstall.sh` → penghapus komponen project
+- `nginx/perpustakaan.conf` → contoh konfigurasi reverse proxy
+
+## Catatan database
+
+Project ini memakai SQLite secara default, jadi tidak perlu install database server terpisah.
+Data disimpan di file database lokal pada project.
+
+## Screenshot
 
 <p align="center">
   <img src="assets/readme/showcase-dashboard.png" alt="Dashboard showcase" width="32%" />
@@ -37,175 +221,14 @@ Aplikasi berjalan internal di `127.0.0.1:8000` dan idealnya diakses publik lewat
   <img src="assets/readme/showcase-detail.png" alt="Detail showcase" width="32%" />
 </p>
 
-## ⭐ Fitur utama
+## Ringkasan singkat untuk dosen
 
-- Dashboard overview untuk ringkasan data perpustakaan
-- CRUD buku lengkap
-- Manage admin / user admin
-- Halaman profile admin
-- Cover buku lokal dari folder aset yang ditentukan
-- Upload file buku PDF/EPUB
-- Download file buku dari halaman detail
-- Tampilan katalog modern berbentuk card/grid
-- Search dan filter katalog buku
-- Fallback cover `cover not available` jika cover kosong
-- Nginx reverse proxy agar Flask tetap internal di port 8000
+Project ini menunjukkan deployment Flask yang rapi dan realistis:
+- source code jelas
+- dependency Python terisolasi di venv
+- aplikasi dijalankan oleh Gunicorn
+- akses publik lewat Nginx
+- bisa dipasang di beberapa distro Linux
+- ada script install dan uninstall yang seimbang
 
-## 🧱 Tech stack
-
-- Flask
-- Flask-Login
-- Flask-WTF + CSRF protection
-- Flask-SQLAlchemy
-- SQLite
-- Jinja2 templates
-- Soft UI Dashboard template
-- Nginx reverse proxy
-- Pillow untuk asset showcase README
-
-## 📁 Struktur penting project
-
-```txt
-perpustakaan-pnj/
-├── apps/
-│   ├── authentication/
-│   ├── home/
-│   ├── config.py
-│   ├── forms.py
-│   └── models.py
-├── assets/
-│   └── readme/
-│       ├── showcase-dashboard.png
-│       ├── showcase-catalog.png
-│       └── showcase-detail.png
-├── nginx/
-│   └── activate-perpustakaan-nginx.sh
-├── static/
-│   └── assets/img/books/covers/
-├── templates/
-│   └── pages/
-├── uploads/
-│   └── books/
-├── run.py
-└── README.md
-```
-
-## ⚙️ Kebutuhan
-
-- Python 3.11+ direkomendasikan
-- pip
-- Git
-- Nginx untuk akses publik
-
-## 🚀 Cara menjalankan secara lokal
-
-1. Clone atau buka project ini.
-
-2. Buat virtual environment:
-
-```bash
-python -m venv .venv
-```
-
-3. Aktifkan virtual environment:
-
-```bash
-source .venv/bin/activate
-```
-
-4. Install dependency:
-
-```bash
-pip install -r requirements.txt
-```
-
-5. Jalankan aplikasi:
-
-```bash
-python run.py
-```
-
-6. Buka di browser:
-
-```txt
-http://127.0.0.1:8000/
-```
-
-Catatan:
-- database SQLite akan dibuat otomatis saat pertama kali dijalankan
-- data seed awal juga dibuat otomatis jika database masih kosong
-
-## 🌐 Akses lewat Nginx
-
-Kalau mau diakses dari laptop lain atau VM, gunakan reverse proxy Nginx:
-
-1. Jalankan Flask internal di port 8000:
-
-```bash
-python run.py
-```
-
-2. Aktifkan konfigurasi Nginx:
-
-```bash
-sudo bash nginx/activate-perpustakaan-nginx.sh
-```
-
-3. Akses dari device lain memakai IP host:
-
-```txt
-http://IP_HOST/
-```
-
-Catatan penting:
-- Flask tetap bind ke `127.0.0.1:8000`
-- port 8000 bukan pintu publik
-- pintu publiknya ada di Nginx port 80
-
-## 📂 Folder file penting
-
-- `static/assets/img/books/covers/` → cover buku lokal
-- `uploads/books/` → file PDF/EPUB yang diupload admin
-- `assets/readme/` → gambar showcase untuk README
-- `nginx/activate-perpustakaan-nginx.sh` → helper untuk mengarahkan Nginx ke app perpustakaan
-
-## 🖼️ Cover dan file buku
-
-Saat menambah atau mengedit buku:
-- cover bisa diupload dalam format gambar yang didukung
-- file buku hanya menerima PDF atau EPUB
-- kalau cover tidak ada, UI akan menampilkan teks fallback `cover not available`
-- file yang diupload bisa didownload dari halaman detail buku
-
-## 🔐 Catatan login admin
-
-Aplikasi memakai akun admin seed awal untuk verifikasi pertama kali.
-
-Jika kamu ingin mengganti akun admin:
-- buat admin baru dari halaman Admin
-- atau update data user yang sudah ada
-
-## 🧪 Checklist verifikasi cepat
-
-```bash
-ss -ltnp | grep ':8000'
-curl -I http://127.0.0.1:8000/login
-```
-
-Hasil yang diharapkan:
-- Flask hanya listen di `127.0.0.1:8000`
-- halaman login merespons normal
-- akses publik tetap lewat Nginx
-
-## 📌 Ringkasan singkat
-
-Project ini sengaja dibuat fokus dan ringan:
-- admin-only
-- CRUD buku
-- manage admin
-- profile
-- katalog buku yang rapi
-- file buku lokal
-- reverse proxy Nginx
-
-Kalau kamu mau, langkah berikutnya biasanya adalah memperhalus UI detail/daftar buku lagi atau menambah fitur pencarian/sortir yang lebih advanced.
+Kalau ingin, saya juga bisa bantu menambahkan bagian presentasi singkat di README: tujuan project, alur kerja, dan pembagian folder agar lebih enak dijelaskan saat demo.
