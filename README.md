@@ -1,7 +1,7 @@
 # Perpustakaan PNJ
 
 <p align="center">
-  <img src="static/assets/img/logo-ct-dark.png" alt="Perpustakaan PNJ" width="180" />
+  <img src="assets/logo_perpustakaan_flask_web.png" alt="Perpustakaan PNJ" width="180" />
 </p>
 
 <p align="center">
