@@ -25,7 +25,7 @@ Perpustakaan PNJ adalah web app berbasis Flask untuk:
 - menampilkan dashboard ringkas untuk monitoring data
 
 Aplikasi dijalankan dengan Gunicorn di dalam Python virtual environment (`venv`).
-Untuk akses publik, aplikasi ditempatkan di belakang Nginx sebagai reverse proxy.
+Setelah install, Nginx akan diarahkan ke app Flask di port 80 sehingga akses lewat `http://IP_SERVER/` menampilkan Perpustakaan PNJ, bukan halaman default Nginx.
 
 ## Kenapa project ini dibuat
 

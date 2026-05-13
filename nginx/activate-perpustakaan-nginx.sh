@@ -44,6 +44,8 @@ server {
 }
 EOF
 
+rm -f /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf /etc/nginx/sites-enabled/default.conf || true
+
 if [[ -L "$NGINX_SITES_ENABLED/inventory" || -e "$NGINX_SITES_ENABLED/inventory" ]]; then
   rm -f "$NGINX_SITES_ENABLED/inventory"
 fi

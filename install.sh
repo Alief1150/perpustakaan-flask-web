@@ -218,7 +218,7 @@ install_nginx_config() {
   mkdir -p "$(dirname "${NGINX_CONF}")"
   cat > "${NGINX_CONF}" <<EOF
 server {
-    listen 80;
+    listen 80 default_server;
     server_name _;
     client_max_body_size 25m;
 
@@ -237,6 +237,7 @@ server {
 }
 EOF
 
+  rm -f /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf /etc/nginx/sites-enabled/default.conf || true
   nginx -t
   systemctl enable nginx >/dev/null 2>&1 || true
 }
