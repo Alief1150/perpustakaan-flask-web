@@ -233,4 +233,122 @@ Project ini menunjukkan deployment Flask yang rapi dan realistis:
 - bisa dipasang di beberapa distro Linux
 - ada script install dan uninstall yang seimbang
 
-Kalau ingin, saya juga bisa bantu menambahkan bagian presentasi singkat di README: tujuan project, alur kerja, dan pembagian folder agar lebih enak dijelaskan saat demo.
+### Penjelasan singkat `install.sh`
+
+Script `install.sh` dipakai untuk memasang seluruh stack aplikasi secara otomatis. Alurnya dibuat berurutan supaya instalasi bisa jalan di banyak distro Linux tanpa langkah manual yang panjang.
+
+1. Persiapan awal
+   - script berjalan dengan mode aman `set -euo pipefail`
+   - wajib dijalankan sebagai root atau lewat `sudo`
+   - nama aplikasi, lokasi project, file service, file `.env`, dan konfigurasi Nginx sudah didefinisikan dari awal
+
+2. Deteksi distro Linux
+   - script membaca `/etc/os-release`
+   - lalu menyesuaikan perintah instalasi paket untuk:
+     - Arch / Manjaro
+     - Debian / Ubuntu
+     - Fedora / RHEL / CentOS
+     - openSUSE / SLES
+   - kalau distro tidak dikenali, instalasi dihentikan dengan pesan yang jelas
+
+3. Instalasi paket sistem
+   - memasang paket yang dibutuhkan: `git`, `python3`, `python3-venv`, `python3-pip`, dan `nginx`
+   - untuk beberapa distro, script juga menyesuaikan paket tambahan seperti `python3-devel`
+
+4. Ambil source code project
+   - kalau repo sudah ada di folder project, script akan `fetch`, `checkout main`, lalu `reset --hard origin/main`
+   - kalau repo belum ada, script akan clone dari GitHub ke folder target
+   - kalau ada folder target yang bukan repo Git, script akan berhenti agar tidak menimpa data lain
+
+5. Menyiapkan folder runtime
+   - membuat folder untuk cover buku, upload file buku, dan aset README jika belum ada
+   - ini penting supaya aplikasi tidak gagal saat menyimpan file atau menampilkan gambar
+
+6. Membuat / melengkapi file `.env`
+   - jika `.env` belum ada, script membuat file baru berisi konfigurasi dasar aplikasi
+   - jika `.env` sudah ada, script mempertahankan isi lama lalu memastikan variabel penting tetap tersedia
+   - variabel yang disiapkan mencakup:
+     - `DEBUG`
+     - `FLASK_APP`
+     - `FLASK_DEBUG`
+     - `SECRET_KEY`
+     - `DATABASE_URL`
+     - `ASSETS_ROOT`
+
+7. Menyiapkan virtual environment
+   - script membuat folder `.venv` jika belum ada
+   - lalu meng-upgrade `pip`, `wheel`, dan `setuptools`
+   - setelah itu semua dependency di `requirements.txt` dipasang ke environment tersebut
+   - tujuan utamanya supaya package Python tidak bercampur dengan sistem
+
+8. Menyesuaikan ownership folder project
+   - script mengubah ownership folder project ke user yang menjalankan instalasi
+   - ini mencegah masalah izin saat aplikasi menulis file upload, asset, atau database
+
+9. Membuat service systemd untuk Gunicorn
+   - script menulis file service di `/etc/systemd/system/perpustakaan-flask-web.service`
+   - Gunicorn dijalankan sebagai service systemd
+   - aplikasi dibind ke `127.0.0.1:8000`
+   - jadi Flask tetap internal, sementara akses publik nanti ditangani Nginx
+   - service di-enable agar otomatis hidup saat server restart
+
+10. Membuat konfigurasi Nginx
+   - script menulis konfigurasi reverse proxy ke `/etc/nginx/conf.d/perpustakaan-flask-web.conf`
+   - Nginx diset mendengar di port `80` dengan `default_server`
+   - request dari browser diteruskan ke Gunicorn di `127.0.0.1:8000`
+   - script juga menghapus konfigurasi default Nginx bawaan supaya tidak muncul halaman “Welcome to nginx”
+   - setelah itu konfigurasi diuji dengan `nginx -t`
+
+11. Menyimpan state instalasi
+   - script menyimpan file state di `/etc/perpustakaan-flask-web/install.env`
+   - file ini dipakai oleh proses uninstall agar bisa tahu lokasi service, folder project, dan konfigurasi yang harus dihapus
+
+12. Menyalakan service
+   - `systemd` dan `nginx` direstart
+   - lalu script menampilkan status service sebagai verifikasi awal
+   - hasil akhirnya:
+     - akses lokal tetap bisa lewat `http://127.0.0.1:8000/`
+     - akses jaringan lewat `http://IP_SERVER/`
+
+### Penjelasan singkat `uninstall.sh`
+
+Script `uninstall.sh` dipakai untuk membersihkan komponen project yang dipasang oleh `install.sh`. Fokusnya adalah menghapus semua bagian milik project tanpa mengganggu dependency global sistem.
+
+1. Persiapan awal
+   - script juga memakai `set -euo pipefail`
+   - wajib dijalankan dengan `sudo` atau root
+   - kalau file state instalasi tersedia, script membacanya untuk mendapatkan lokasi file yang benar
+
+2. Menghentikan service aplikasi
+   - service `perpustakaan-flask-web` dihentikan
+   - lalu di-disable supaya tidak otomatis berjalan saat boot
+
+3. Menghapus file service systemd
+   - file service di `/etc/systemd/system/perpustakaan-flask-web.service` dihapus
+   - setelah itu `systemctl daemon-reload` dijalankan agar systemd memperbarui daftar service
+
+4. Menghapus konfigurasi Nginx project
+   - file konfigurasi Nginx project dihapus dari `/etc/nginx/conf.d/`
+   - setelah itu Nginx diuji dan di-reload supaya konfigurasi lama tidak dipakai lagi
+
+5. Menghapus environment dan virtual environment
+   - file `.env` project dihapus
+   - folder `.venv` juga dihapus karena isinya hanya milik project ini
+
+6. Menghapus folder project
+   - seluruh folder project dihapus dari disk
+   - ini termasuk source code dan folder kerja yang dipakai instalasi
+
+7. Menghapus state instalasi
+   - folder `/etc/perpustakaan-flask-web/` dihapus
+   - jadi tidak ada sisa metadata instalasi yang tertinggal
+
+8. Hasil akhir uninstall
+   - service aplikasi hilang
+   - konfigurasi Nginx project hilang
+   - virtual environment hilang
+   - file environment hilang
+   - folder project hilang
+   - dependency global sistem tetap aman karena tidak ikut dihapus
+
+Kalau ingin, saya juga bisa bantu menambahkan versi yang lebih singkat lagi untuk presentasi lisan di depan dosen.
