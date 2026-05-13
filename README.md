@@ -218,9 +218,9 @@ Data disimpan di file database lokal pada project.
 ## Screenshot
 
 <p align="center">
-  <img src="assets/readme/showcase-dashboard.png" alt="Dashboard showcase" width="32%" />
-  <img src="assets/readme/showcase-catalog.png" alt="Catalog showcase" width="32%" />
-  <img src="assets/readme/showcase-detail.png" alt="Detail showcase" width="32%" />
+  <img src="assets/SS_1.png" alt="Login showcase" width="32%" />
+  <img src="assets/SS_2.png" alt="Dashboard showcase" width="32%" />
+  <img src="assets/SS_3.png" alt="Books showcase" width="32%" />
 </p>
 
 ## Ringkasan singkat untuk dosen
