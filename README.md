@@ -4,6 +4,8 @@
   <img src="assets/logo_perpustakaan_flask_web.png" alt="Perpustakaan PNJ" width="180" />
 </p>
 
+<p align="center"><em>Logo menggunakan file <code>assets/logo_perpustakaan_flask_web.png</code>.</em></p>
+
 <p align="center">
   <img src="https://img.shields.io/badge/Flask-3.x-000000?logo=flask&logoColor=white" alt="Flask badge" />
   <img src="https://img.shields.io/badge/SQLite-Database-003B57?logo=sqlite&logoColor=white" alt="SQLite badge" />
